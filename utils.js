@@ -59,10 +59,10 @@
         },
         renewAccessToken: function (clan) {
             console.log("Attempting to renew access token for clan " + clan + ".");
-            db.query("SELECT * FROM Clan WHERE id = ?;", clan, function (err, result) {
-                if (!err && result.length === 1) {
+            db.query("SELECT * FROM Clan WHERE id = ?;", clan, function (err, clanDetails) {
+                if (!err && clanDetails.length === 1) {
                     var content = 'application_id=' + config.appId +
-                        '&access_token=' + result[0].wot_access_token;
+                        '&access_token=' + clanDetails[0].wot_access_token;
 
                     request({
                         headers: {
@@ -79,15 +79,20 @@
                             if (res.status === "ok") {
                                 console.log("Token successfully renewed for clan " + clan + ", updating db.");
 
+                                var tokenDetails = {
+                                    wot_access_token: res.data.access_token,
+                                    expires: expires_at
+                                };
+
                                 db.query("UPDATE Clan SET ? WHERE id = ?;",
-                                    [{
-                                        wot_access_token: res.data.access_token,
-                                        expires: expires_at
-                                    }, clan], function (err, result) {
+                                    [tokenDetails, clan], function (err, result) {
                                         if (err || result.affectedRows !== 1) {
                                             console.log("ERROR: DB update unsuccessful!");
                                         }
                                     });
+
+                                db.query("UPDATE Session SET ? WHERE wot_access_token = ?;",
+                                    [tokenDetails, clanDetails[0].wot_access_token]);
                             } else {
                                 console.log("Token renewal of clan " + clan + " failed! API query error.");
                                 console.log(res.error);
