@@ -2,6 +2,7 @@
     "use strict";
 
     var config = require("./config"),
+        db = require("./db"),
         request = require("request");
 
     module.exports = {
@@ -56,31 +57,48 @@
                 }
             });
         },
-        renewAccessToken: function (token, cb) {
-            var content = 'application_id=' + config.appId +
-                '&access_token=' + token;
+        renewAccessToken: function (clan) {
+            console.log("Attempting to renew access token for clan " + clan + ".");
+            db.query("SELECT * FROM Clan WHERE id = ?;", clan, function (err, result) {
+                if (!err && result.length === 1) {
+                    var content = 'application_id=' + config.appId +
+                        '&access_token=' + result[0].wot_access_token;
 
-            request({
-                headers: {
-                    'Content-Length': content.length,
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                uri: 'https://api.worldoftanks.eu/wot/auth/prolongate/',
-                body: content,
-                method: 'POST'
-            }, function (error, response, body) {
-                if (!error && response.statusCode == 200) {
-                    var res = JSON.parse(body);
+                    request({
+                        headers: {
+                            'Content-Length': content.length,
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        uri: 'https://api.worldoftanks.eu/wot/auth/prolongate/',
+                        body: content,
+                        method: 'POST'
+                    }, function (error, response, body) {
+                        if (!error && response.statusCode == 200) {
+                            var res = JSON.parse(body);
 
-                    if (res.status === "ok") {
-                        console.log("Token successfully renewed");
-                        cb(null, res.data.access_token);
-                    } else {
-                        console.log("Token renewal failed!");
-                        cb(res.error);
-                    }
+                            if (res.status === "ok") {
+                                console.log("Token successfully renewed for clan " + clan + ", updating db.");
+
+                                db.query("UPDATE Clan SET ? WHERE id = ?;",
+                                    [{
+                                        wot_access_token: res.data.access_token,
+                                        expires: expires_at
+                                    }, clan], function (err, result) {
+                                        if (err || result.affectedRows !== 1) {
+                                            console.log("ERROR: DB update unsuccessful!");
+                                        }
+                                    });
+                            } else {
+                                console.log("Token renewal of clan " + clan + " failed! API query error.");
+                                console.log(res.error);
+                            }
+                        } else {
+                            console.log("Token renewal of clan " + clan + " failed! API Query unsuccessful.");
+                            console.log(response);
+                        }
+                    });
                 } else {
-                    cb(response);
+                    console.log("Renewal error! Clan not found from DB!")
                 }
             });
         }
