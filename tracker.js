@@ -23,7 +23,7 @@
 
                         console.log("Expires in: " + expiresIn + " hours.");
 
-                        if (expiresIn < 350) {
+                        if (expiresIn < 24) {
                             utils.renewAccessToken(clan.id);
                         }
                     });
