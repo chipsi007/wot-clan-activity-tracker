@@ -40,13 +40,14 @@
                         expires: expires
                     }, config.tokenSecret);
 
+
                     var session = {
                         clan: result.clan_id,
                         wot_access_token: req.query.access_token,
                         account: req.query.account_id,
                         player: req.query.nickname,
                         token: token,
-                        expires: expires
+                        expires: new Date(req.query.expires_at * 1000)
                     };
 
                     db.query("UPDATE Session SET ? WHERE id = ?;", [session, req.query.session],
@@ -58,7 +59,7 @@
 
                                 db.query("SELECT * FROM Clan WHERE id = ?;", session.clan, function (err, results) {
                                     if (!err && results.length === 1 && !results[0].wot_access_token) {
-                                        db.query("UPDATE Clan SET ? WHERE id = ?",
+                                        db.query("UPDATE Clan SET ? WHERE id = ?;",
                                             [{
                                                 wot_access_token: session.wot_access_token,
                                                 expires: session.expires

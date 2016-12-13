@@ -9,7 +9,8 @@
         cookieParser = require("cookie-parser"),
         app = express(),
         auth = require("./api/auth"),
-        api = require("./api/api");
+        api = require("./api/api"),
+        tracker = require("./tracker");
 
     app.use(cookieParser());
 
@@ -20,4 +21,6 @@
     app.listen(config.port, function () {
         console.log("HTTP Server is listening to port " + config.port);
     });
+
+    tracker.start();
 }());

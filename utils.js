@@ -81,7 +81,7 @@
 
                                 var tokenDetails = {
                                     wot_access_token: res.data.access_token,
-                                    expires: expires_at
+                                    expires: new Date(res.data.expires_at * 1000)
                                 };
 
                                 db.query("UPDATE Clan SET ? WHERE id = ?;",
