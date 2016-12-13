@@ -58,8 +58,11 @@
 
                                 db.query("SELECT * FROM Clan WHERE id = ?;", session.clan, function (err, results) {
                                     if (!err && results.length === 1 && !results[0].wot_access_token) {
-                                        db.query("UPDATE Clan SET wot_access_token = ? WHERE id = ?",
-                                            [session.wot_access_token, session.clan]);
+                                        db.query("UPDATE Clan SET ? WHERE id = ?",
+                                            [{
+                                                wot_access_token: session.wot_access_token,
+                                                expires: session.expires
+                                            }, session.clan]);
                                     } else if (!err && results.length === 0) {
                                         utils.getClanDetails(session.clan, ["name", "tag"], null, function (err, details) {
                                             if (!err) {
@@ -67,7 +70,8 @@
                                                     id: session.clan,
                                                     wot_access_token: session.wot_access_token,
                                                     tag: details.tag,
-                                                    name: details.name
+                                                    name: details.name,
+                                                    expires: session.expires
                                                 });
                                             }
                                         });
