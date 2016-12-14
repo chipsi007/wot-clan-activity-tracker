@@ -50,7 +50,7 @@
                         expires: new Date(req.query.expires_at * 1000)
                     };
 
-                    db.query("UPDATE Session SET ? WHERE id = ?;", [session, req.query.session],
+                    db.query("UPDATE Session SET ? WHERE id = ? AND wot_access_token IS NULL;", [session, req.query.session],
                         function (err, result) {
                             if (!err && result.affectedRows === 1) {
                                 var cookieConfig = {maxAge: 1000 * 60 * 60 * 24 * 7, httpOnly: true};
