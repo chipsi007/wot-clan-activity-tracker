@@ -6,6 +6,17 @@
         request = require("request"),
         Promise = require("promise");
 
+    function nullifyToken(clan) {
+        db.query("UPDATE Clan SET wot_access_token = NULL, expires = NULL WHERE id = ?;",
+            clan, function (err, result) {
+                if (!err && result.affectedRows === 1) {
+                    console.log("Access token of clan " + clan + " was set to NULL.");
+                } else {
+                    console.log("Error while setting clan " + clan + " token as NULL.");
+                }
+            });
+    }
+
     module.exports = {
         getPlayerDetails: function (account, fields, cb) {
             var query = 'https://api.worldoftanks.eu/wot/account/info/' +
@@ -55,6 +66,7 @@
                                 data: res.data[clan]
                             });
                         } else {
+                            nullifyToken(clan);
                             reject(res.error);
                         }
                     } else {
@@ -152,6 +164,13 @@
                             } else {
                                 console.log("Token renewal of clan " + clan + " failed! API query error.");
                                 console.log(res.error);
+
+                                db.query("UPDATE Clan SET wot_access_token = NULL, expires = NULL WHERE id = ?;",
+                                    clan, function (err, result) {
+                                        if (!err && result.affectedRows === 1) {
+                                            console.log("Token was set as NULL to db.");
+                                        }
+                                    });
                             }
                         } else {
                             console.log("Token renewal of clan " + clan + " failed! API Query unsuccessful.");

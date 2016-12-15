@@ -14,6 +14,8 @@
         setInterval(function () {
             db.query("SELECT * FROM Clan WHERE wot_access_token IS NOT NULL;", function (err, clans) {
                 clans.forEach(function (clan) {
+                    var expiresIn = moment(clan.expires).diff(moment(), "hours");
+
                     var promises = [];
                     promises.push(utils.getClanDetails(clan.id, ["private"], clan.wot_access_token));
                     promises.push(utils.getClanWarsData(clan.id));
@@ -27,7 +29,8 @@
                         results.forEach(function (result) {
                             switch (result.method) {
                                 case "getClanDetails":
-                                    log.players = result.data.private.online_members.join();
+                                    log.online = result.data.private.online_members.join();
+                                    log.online_count = result.data.private.online_members.length;
                                     break;
                                 case "getSkirmishData":
                                     var skirmish = result.data.skirmish;
@@ -72,14 +75,18 @@
                             }
                         });
 
-                        db.query("INSERT INTO Activity SET ?;", log);
+                        db.query("INSERT INTO Activity SET ?;", log, function (err, result) {
+                            if (!err) {
+                                console.log("Activity log entry for clan " + clan.id + " created. " +
+                                    "Token expires in " + expiresIn + " hours.");
+                            } else {
+                                console.log("Error while inserting clan " + clan.id + " activity log to db");
+                            }
+                        });
                     }, function (err) {
+                        console.log("Error occured while logging clan " + clan.id + " activity:");
                         console.log(err);
                     });
-
-                    var expiresIn = moment(clan.expires).diff(moment(), "hours");
-
-                    console.log("Expires in: " + expiresIn + " hours.");
 
                     if (expiresIn < 24) {
                         utils.renewAccessToken(clan.id);
