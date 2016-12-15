@@ -3,7 +3,8 @@
 
     var config = require("./config"),
         db = require("./db"),
-        request = require("request");
+        request = require("request"),
+        Promise = require("promise");
 
     module.exports = {
         getPlayerDetails: function (account, fields, cb) {
@@ -29,32 +30,87 @@
                 }
             });
         },
-        getClanDetails: function (clan, fields, access_token, cb) {
-            var query = 'https://api.worldoftanks.eu/wgn/clans/info/' +
-                '?application_id=' + config.appId +
-                '&clan_id=' + clan;
+        getClanDetails: function (clan, fields, access_token) {
+            return new Promise(function (resolve, reject) {
+                var query = 'https://api.worldoftanks.eu/wgn/clans/info/' +
+                    '?application_id=' + config.appId +
+                    '&clan_id=' + clan;
 
-            if (access_token) {
-                query += '&access_token=' + access_token +
-                    '&extra=private.online_members';
-            }
-
-            if (fields) {
-                query += '&fields=' + fields.join();
-            }
-
-            request(query, function (error, response, body) {
-                if (!error && response.statusCode == 200) {
-                    var res = JSON.parse(body);
-
-                    if (res.status === "ok") {
-                        cb(null, res.data[clan]);
-                    } else {
-                        cb(res.error);
-                    }
-                } else {
-                    cb(response);
+                if (access_token) {
+                    query += '&access_token=' + access_token +
+                        '&extra=private.online_members';
                 }
+
+                if (fields) {
+                    query += '&fields=' + fields.join();
+                }
+
+                request(query, function (error, response, body) {
+                    if (!error && response.statusCode == 200) {
+                        var res = JSON.parse(body);
+
+                        if (res.status === "ok") {
+                            resolve({
+                                method: "getClanDetails",
+                                data: res.data[clan]
+                            });
+                        } else {
+                            reject(res.error);
+                        }
+                    } else {
+                        reject(response);
+                    }
+                });
+            });
+        },
+        getClanWarsData: function (clan) {
+            return new Promise(function (resolve, reject) {
+                var query = 'https://api.worldoftanks.eu/wot/globalmap/claninfo/' +
+                    '?application_id=' + config.appId +
+                    '&clan_id=' + clan;
+
+                request(query, function (error, response, body) {
+                    if (!error && response.statusCode == 200) {
+                        var res = JSON.parse(body);
+
+                        if (res.status === "ok") {
+                            resolve({
+                                method: "getClanWarsData",
+                                data: res.data[clan]
+                            });
+                        } else {
+                            reject(res.error);
+                        }
+                    } else {
+                        reject(response);
+                    }
+                });
+            });
+        },
+        getSkirmishData: function (clan, access_token) {
+            return new Promise(function (resolve, reject) {
+                var query = 'https://api.worldoftanks.eu/wot/stronghold/info/' +
+                    '?application_id=' + config.appId +
+                    '&clan_id=' + clan +
+                    '&access_token=' + access_token +
+                    '&fields=private.skirmish,skirmish';
+
+                request(query, function (error, response, body) {
+                    if (!error && response.statusCode == 200) {
+                        var res = JSON.parse(body);
+
+                        if (res.status === "ok") {
+                            resolve({
+                                method: "getSkirmishData",
+                                data: res.data[clan]
+                            });
+                        } else {
+                            reject(res.error);
+                        }
+                    } else {
+                        reject(response);
+                    }
+                });
             });
         },
         renewAccessToken: function (clan) {
