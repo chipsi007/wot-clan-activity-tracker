@@ -8,7 +8,7 @@
         },
         TOKEN_INVALID: {
             status: 401,
-            message: "Token missing or invalid. Please enter it as x-access-token header."
+            message: "Token missing or invalid. Please login again."
         },
         TOKEN_EXPIRED: {
             status: 401,
