@@ -12,7 +12,8 @@
         db = require("../db"),
         utils = require("../utils"),
         jwt = require("jwt-simple"),
-        responses = require("../responses");
+        responses = require("../responses"),
+        online = require("./online");
 
     router.use(function (req, res, next) {
         if (req.cookies.token) {
@@ -20,6 +21,7 @@
                 function (err, result) {
                     if (!err && result.length === 1) {
                         if (result[0].expires > new Date()) {
+                            req.user = result[0];
                             next();
                         } else {
                             responses.error(responses.TOKEN_EXPIRED, res);
@@ -33,9 +35,7 @@
         }
     });
 
-    router.get("/online", function (req, res) {
-        responses.success("IM IN!", null, res);
-    });
+    router.get("/online", online);
 
     module.exports = router;
 }());
