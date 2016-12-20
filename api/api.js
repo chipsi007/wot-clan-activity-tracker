@@ -13,7 +13,8 @@
         utils = require("../utils"),
         jwt = require("jwt-simple"),
         responses = require("../responses"),
-        online = require("./online");
+        online = require("./online"),
+        data = require("./data");
 
     router.use(function (req, res, next) {
         if (req.cookies.token) {
@@ -36,6 +37,7 @@
     });
 
     router.get("/online", online);
+    router.get("/data", data);
 
     module.exports = router;
 }());

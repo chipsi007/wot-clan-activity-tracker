@@ -24,5 +24,5 @@
         console.log("HTTP Server is listening to port " + config.port);
     });
 
-    tracker.start();
+    //tracker.start();
 }());

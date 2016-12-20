@@ -61,7 +61,6 @@
     };
 
     module.exports = function (req, res) {
-        console.log(req.user);
         getActivityFromPeriod(req.user.clan, req.query.start,
             req.query.end, req.query.interval, req.query.intervalUnit, req.query.showPlayers, function (activity) {
                 responses.success("Success", activity, res);
