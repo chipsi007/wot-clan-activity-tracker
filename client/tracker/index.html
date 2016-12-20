@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <script
+            src="https://code.jquery.com/jquery-3.1.1.min.js"
+            integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+            crossorigin="anonymous"></script>
+
+    <script type="text/javascript">
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawChart);
+
+        function drawChart() {
+            $.get("http://vilik.in/tracker/api/online" +
+                "?start=2016-12-14T23:00&end=2016-12-19T21:00" +
+                "&interval=1&intervalUnit=hours", function (d) {
+
+                var data = new google.visualization.DataTable();
+                data.addColumn('date', 'Date');
+                data.addColumn('number', 'Online');
+
+                var entries = [];
+
+                d.result.forEach(function (item) {
+                    entries.push([new Date(item.date), item.online]);
+                });
+
+                data.addRows(entries);
+
+                var options = {
+                    vAxis: {
+                        title: 'Online'
+                    },
+                    backgroundColor: '#f1f8e9'
+                };
+
+                var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+                chart.draw(data, options);
+            });
+        }
+    </script>
+
+    <title>WoT Clan Activity Tracker</title>
+</head>
+<body>
+<div id="curve_chart" style="width: 100%;"></div>
+</body>
+</html>

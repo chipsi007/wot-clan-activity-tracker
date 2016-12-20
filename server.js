@@ -12,11 +12,13 @@
         api = require("./api/api"),
         tracker = require("./tracker");
 
+    app.use(express.static("./client"));
+
     app.use(cookieParser());
 
-    app.use("/auth", auth);
+    app.use("/tracker/auth", auth);
 
-    app.use("/api", api);
+    app.use("/tracker/api", api);
 
     app.listen(config.port, function () {
         console.log("HTTP Server is listening to port " + config.port);
